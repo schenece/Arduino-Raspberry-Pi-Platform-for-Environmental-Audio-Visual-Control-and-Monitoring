@@ -4,7 +4,7 @@
 // ====== Debug Flags ======
 #define DEBUG_MODE true
 #define DEBUG_MODE_SYSTEM true
-#define DEBUG_MODE_SPEAKER false
+#define DEBUG_MODE_SPEAKER true
 
 // ====== DFPlayer Settings ======
 #define DFPLAYER_SERIAL_BAUD 9600

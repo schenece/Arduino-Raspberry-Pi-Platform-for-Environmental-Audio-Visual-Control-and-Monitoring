@@ -11,26 +11,40 @@ void CommandRouter::handleSerial() {
   input.trim();
   input.toLowerCase();
 
+  // Serial.print("[CommandRouter] Received: ");
+  // Serial.println(input);
+
   if (input == "night") {
     SystemManager::setState(SystemState::ACTIVE);
+    SystemManager::suppressRTCFor(30000);
   } else if (input == "day") {
     SystemManager::setState(SystemState::IDLE);
-  } else if (input == "pause") {
-    SpeakerController::pause();
-  } else if (input == "resume") {
-    SpeakerController::resume();
-  } else if (input == "stop") {
-    SpeakerController::stop();
-  } else if (input == "next") {
-    SpeakerController::next();
-  } else if (input == "prev") {
-    SpeakerController::prev();
-  } else if (input.startsWith("vol")) {
-    int v = input.substring(3).toInt();
-    SpeakerController::setVolume(v);
+    SystemManager::suppressRTCFor(30000);
   } else if (input == "status") {
     SystemManager::printStatus();
-  } else {
-    Serial.println("[Command] Unknown command.");
+  }
+
+  // Only allow speaker control if system is in ACTIVE mode
+  else if (SystemManager::getState() == SystemState::ACTIVE) {
+    if (input == "pause") {
+      SpeakerController::pause();
+    } else if (input == "resume") {
+      SpeakerController::resume();
+    } else if (input == "stop") {
+      SpeakerController::stop();
+    } else if (input == "next") {
+      SpeakerController::next();
+    } else if (input == "prev") {
+      SpeakerController::prev();
+    } else if (input.startsWith("vol")) {
+      int v = input.substring(3).toInt();
+      SpeakerController::setVolume(v);
+    } else {
+      Serial.println("[Command] Unknown command.");
+    }
+  }
+
+  else {
+    Serial.println("[Command] Ignored: not allowed in IDLE mode.");
   }
 }
