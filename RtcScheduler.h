@@ -4,8 +4,23 @@
 #include <RTClib.h>
 
 namespace RtcScheduler {
+
+  struct ActiveWindow {
+    DateTime start;
+    DateTime end;
+  };
+
+  extern RTC_DS3231 rtc;
+
   void begin();
-  bool isActiveWindow();
+
+  ActiveWindow getActiveWindow(
+    int year, int month, int day,
+    int startHour, int startMinute,
+    int durationHour, int durationMinute
+  );
+
+  bool isActiveWindow(const ActiveWindow& window, DateTime nowOverride = rtc.now());
 }
 
 #endif
