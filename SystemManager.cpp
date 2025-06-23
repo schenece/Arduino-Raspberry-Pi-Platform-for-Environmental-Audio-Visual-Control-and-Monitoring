@@ -21,17 +21,28 @@ void SystemManager::loop() {
   SpeakerController::loop();
   LightController::update();
 
-  bool useRTC = (millis() > manualOverrideUntil);
+  // === Periodic RTC-based state check ===
+  static unsigned long lastCheck = 0;
+  const unsigned long interval = 5000;  // every 5 seconds
 
-  if (millis() > manualOverrideUntil) {
-    if (RtcScheduler::isActiveWindow()) {
+  if (millis() > manualOverrideUntil && millis() - lastCheck > interval) {
+    lastCheck = millis();
+
+    DateTime now = RtcScheduler::rtc.now();
+    auto win = RtcScheduler::getActiveWindow(
+      now.year(), now.month(), now.day(),
+      ACTIVE_START_HOUR, ACTIVE_START_MINUTE,
+      ACTIVE_DURATION_HOUR, ACTIVE_DURATION_MINUTE
+    );
+
+    if (RtcScheduler::isActiveWindow(win, now)) {
       setState(SystemState::ACTIVE);
     } else {
       setState(SystemState::IDLE);
     }
   }
 
-  // Sync lights with speaker only in ACTIVE
+  // === Sync lights with speaker ONLY in ACTIVE ===
   if (currentState == SystemState::ACTIVE) {
     if (SpeakerController::getState() == SpeakerState::PLAYING) {
       LightController::start();
