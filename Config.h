@@ -16,7 +16,7 @@
 // ====== Active Window Settings ======
 #define ACTIVE_START_HOUR     12
 #define ACTIVE_START_MINUTE   30
-#define ACTIVE_DURATION_HOUR  1
-#define ACTIVE_DURATION_MINUTE 30
+#define ACTIVE_DURATION_HOUR  5
+#define ACTIVE_DURATION_MINUTE 0
 
 #endif
