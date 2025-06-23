@@ -133,6 +133,7 @@ void LightController::update() {
     case LampState::OFF_INTERVAL:
       if (millis() - offStartTime >= patterns[currentPattern][2]) {
         debugPrintln(F("[Light] OFF interval done. Restarting pattern."));
+        currentPattern = -1;  // ✅ reset pattern for next cycle
         currentState = LampState::IDLE;
         running = false;
       }
