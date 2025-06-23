@@ -6,6 +6,8 @@
 #include "debug_utils.h"
 #include "SdFaultLogger.h"  
 
+#include <Adafruit_SleepyDog.h>
+
 namespace {
   SystemState currentState = SystemState::IDLE;
   unsigned long manualOverrideUntil = 0;
@@ -90,3 +92,7 @@ void SystemManager::printStatus() {
 void SystemManager::suppressRTCFor(unsigned long durationMs) {
   manualOverrideUntil = millis() + durationMs;
 }
+
+// void SystemManager::heartbeat() {
+
+// }

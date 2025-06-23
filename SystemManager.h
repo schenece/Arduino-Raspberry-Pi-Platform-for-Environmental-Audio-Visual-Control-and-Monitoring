@@ -15,6 +15,8 @@ namespace SystemManager {
   void printStatus();                    // Optional debug output
 
   void suppressRTCFor(unsigned long durationMs); 
+
+  void heartbeat(); 
 }
 
 #endif
