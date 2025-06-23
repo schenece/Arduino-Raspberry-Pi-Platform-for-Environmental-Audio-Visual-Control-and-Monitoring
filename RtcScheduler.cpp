@@ -1,16 +1,8 @@
 #include "RtcScheduler.h"
 #include "debug_utils.h"
 
-// ==== USER-CONFIGURABLE SCHEDULE ====
-// Edit these values to change the system's automatic ACTIVE window
-const int ACTIVE_HOUR = 23;                 // Start time: hour (24h format)
-const int ACTIVE_MINUTE = 5;                // Start time: minute
-const int ACTIVE_DURATION_MINUTES = 3;      // ACTIVE window duration (minutes)
-
-namespace {
+namespace RtcScheduler {
   RTC_DS3231 rtc;
-  DateTime activeStart;
-  DateTime activeEnd;
 }
 
 void RtcScheduler::begin() {
@@ -19,24 +11,34 @@ void RtcScheduler::begin() {
     return;
   }
 
-  if (rtc.lostPower()) {
-    debugPrintln("[RTC] Lost power. Setting default time.");
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  DateTime now = rtc.now();
+
+  if (rtc.lostPower() || now.year() < 2025) {
+    debugPrintln("[RTC] Lost power or invalid time. Manual reset required.");
+    return;
   }
 
-  DateTime now = rtc.now();
-  activeStart = DateTime(now.year(), now.month(), now.day(), ACTIVE_HOUR, ACTIVE_MINUTE, 0);
-  activeEnd   = activeStart + TimeSpan(0, 0, ACTIVE_DURATION_MINUTES, 0);
-
-  debugPrint(F("[RTC] ACTIVE window: "));
-  debugPrint(activeStart.timestamp());
-  debugPrint(" → ");
-  debugPrintln(activeEnd.timestamp());
+  debugPrint(F("[RTC] Current time: "));
+  debugPrintln(now.timestamp());
 }
 
-bool RtcScheduler::isActiveWindow() {
-  // Temporarily overridden for testing purposes
-  // DateTime now = rtc.now();
-  // return (now >= activeStart && now < activeEnd);
-  return true;
+RtcScheduler::ActiveWindow RtcScheduler::getActiveWindow(
+  int year, int month, int day,
+  int startHour, int startMinute,
+  int durationHour, int durationMinute
+) {
+  DateTime start(year, month, day, startHour, startMinute, 0);
+  TimeSpan duration((durationHour * 3600L) + (durationMinute * 60L));
+  DateTime end = start + duration;
+
+  // debugPrint(F("[RTC] ACTIVE window: "));
+  // debugPrint(start.timestamp());
+  // debugPrint(" → ");
+  // debugPrintln(end.timestamp());
+
+  return { start, end };
+}
+
+bool RtcScheduler::isActiveWindow(const ActiveWindow& window, DateTime nowOverride) {
+  return (nowOverride >= window.start && nowOverride < window.end);
 }

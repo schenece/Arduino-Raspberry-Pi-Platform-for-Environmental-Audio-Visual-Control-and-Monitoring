@@ -31,10 +31,10 @@ RtcScheduler::ActiveWindow RtcScheduler::getActiveWindow(
   TimeSpan duration((durationHour * 3600L) + (durationMinute * 60L));
   DateTime end = start + duration;
 
-  debugPrint(F("[RTC] ACTIVE window: "));
-  debugPrint(start.timestamp());
-  debugPrint(" → ");
-  debugPrintln(end.timestamp());
+  // debugPrint(F("[RTC] ACTIVE window: "));
+  // debugPrint(start.timestamp());
+  // debugPrint(" → ");
+  // debugPrintln(end.timestamp());
 
   return { start, end };
 }
