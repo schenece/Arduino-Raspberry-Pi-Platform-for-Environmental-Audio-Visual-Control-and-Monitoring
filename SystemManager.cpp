@@ -4,6 +4,7 @@
 #include "LightController.h"
 #include "RtcScheduler.h"
 #include "debug_utils.h"
+#include "SdFaultLogger.h"  
 
 namespace {
   SystemState currentState = SystemState::IDLE;
@@ -11,6 +12,10 @@ namespace {
 }
 
 void SystemManager::begin() {
+  bool sdOk = SdFaultLogger::begin();             // ✅ Try to init SD
+
+  if (sdOk) SdFaultLogger::log("System booted", true);  // ✅ Log boot success
+
   SpeakerController::begin();
   LightController::begin();
   RtcScheduler::begin();
