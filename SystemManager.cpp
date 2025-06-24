@@ -37,7 +37,7 @@ void SystemManager::loop() {
 
     DateTime now = RtcScheduler::rtc.now();
     auto win = RtcScheduler::getActiveWindow(
-      now.year(), now.month(), now.day(),
+      now,
       ACTIVE_START_HOUR, ACTIVE_START_MINUTE,
       ACTIVE_DURATION_HOUR, ACTIVE_DURATION_MINUTE
     );

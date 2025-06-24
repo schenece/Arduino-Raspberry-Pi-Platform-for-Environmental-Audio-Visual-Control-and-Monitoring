@@ -23,19 +23,32 @@ void RtcScheduler::begin() {
 }
 
 RtcScheduler::ActiveWindow RtcScheduler::getActiveWindow(
-  int year, int month, int day,
+  DateTime now,
   int startHour, int startMinute,
   int durationHour, int durationMinute
 ) {
-  DateTime start(year, month, day, startHour, startMinute, 0);
   TimeSpan duration((durationHour * 3600L) + (durationMinute * 60L));
+  DateTime todayStart(now.year(), now.month(), now.day(), startHour, startMinute, 0);
+  DateTime todayEnd = todayStart + duration;
+
+  DateTime start;
+
+  if (now >= todayStart) {
+    start = todayStart;
+  } else {
+    // Special case: it’s morning (e.g., 2am), so maybe yesterday’s window is still open
+    DateTime yesterday = now - TimeSpan(86400);
+    DateTime yesterdayStart(yesterday.year(), yesterday.month(), yesterday.day(), startHour, startMinute, 0);
+    DateTime yesterdayEnd = yesterdayStart + duration;
+
+    if (now < yesterdayEnd) {
+      start = yesterdayStart;
+    } else {
+      start = todayStart;  // Not in yesterday's window, use today
+    }
+  }
+
   DateTime end = start + duration;
-
-  // debugPrint(F("[RTC] ACTIVE window: "));
-  // debugPrint(start.timestamp());
-  // debugPrint(" → ");
-  // debugPrintln(end.timestamp());
-
   return { start, end };
 }
 
