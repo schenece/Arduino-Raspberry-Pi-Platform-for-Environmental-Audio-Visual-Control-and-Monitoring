@@ -14,9 +14,9 @@
 #define DEFAULT_VOLUME 18
 
 // ====== Active Window Settings ======
-#define ACTIVE_START_HOUR     11
-#define ACTIVE_START_MINUTE   50
+#define ACTIVE_START_HOUR     16
+#define ACTIVE_START_MINUTE  00
 #define ACTIVE_DURATION_HOUR  0
-#define ACTIVE_DURATION_MINUTE 32
+#define ACTIVE_DURATION_MINUTE 10
 
 #endif

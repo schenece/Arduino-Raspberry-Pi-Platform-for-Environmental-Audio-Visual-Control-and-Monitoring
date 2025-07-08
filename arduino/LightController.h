@@ -12,7 +12,7 @@ namespace LightController {
 
 // === Safe firing delay range (empirically stable) ===
 const unsigned int delayForBrightestUs = 1800;
-const unsigned int delayForDarkestUs  = 7500;
+const unsigned int delayForDarkestUs  = 7800;
 
 // === Runtime State ===
 volatile bool triggerPending = false;
@@ -31,6 +31,7 @@ bool lightEnabled = false;
 bool fadeOutStarted = false;
 
 int trackNumGlobal = 0;
+int zcCooldownCycles = 2;      // skip 2 zero-crosses before TRIAC pulses
 
 void onZeroCross() {
   triggerPending = true;
@@ -47,8 +48,7 @@ void begin() {
 
 void start(int trackNum, int fadeTimeMs) {
   fadingActive = true;
-  lightEnabled = true;
-  delayTimeUs = delayForDarkestUs;
+  delayTimeUs = delayForDarkestUs;  // 🔧 Make sure we start from dark
   fadeOutStarted = false;
   cycleCounter = 0;
   trackNumGlobal = trackNum;
@@ -80,6 +80,9 @@ void start(int trackNum, int fadeTimeMs) {
   Serial.print(", cyclesPerStepOut = ");
   Serial.print(cyclesPerStepOut);
   Serial.println(")");
+
+  zcCooldownCycles = 2;
+  lightEnabled = true;
 }
 
 void stop() {
@@ -95,9 +98,19 @@ void update() {
   triggerPending = false;
 
   if (lightEnabled) {
+    if (zcCooldownCycles > 0) {
+      zcCooldownCycles--;
+      return;  // Skip TRIAC trigger during cooldown
+    }
+
+    // Clamp to safe range before use
+    if (delayTimeUs < delayForBrightestUs || delayTimeUs > delayForDarkestUs) {
+      delayTimeUs = delayForDarkestUs;
+    }
+
     delayMicroseconds(delayTimeUs);
     digitalWrite(PSM_PIN, HIGH);
-    delayMicroseconds(50);  // pulse
+    delayMicroseconds(50);
     digitalWrite(PSM_PIN, LOW);
   }
 
