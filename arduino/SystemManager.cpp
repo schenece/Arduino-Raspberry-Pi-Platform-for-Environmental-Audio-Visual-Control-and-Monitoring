@@ -5,17 +5,21 @@
 #include "RtcScheduler.h"
 #include "debug_utils.h"
 #include "SdFaultLogger.h"  
+#include "FadeTable.h"
 
 #include <Adafruit_SleepyDog.h>
 
 namespace {
   SystemState currentState = SystemState::IDLE;
   unsigned long manualOverrideUntil = 0;
+
+  // 🔧 CHANGED: Speaker-sync tracking
+  int lastSyncedTrack = -1;
+  SpeakerState prevSpeakerState = SpeakerState::STOPPED;
 }
 
 void SystemManager::begin() {
   bool sdOk = SdFaultLogger::begin();             // ✅ Try to init SD
-
   if (sdOk) SdFaultLogger::log("System booted", true);  // ✅ Log boot success
 
   // RtcScheduler::begin();
@@ -49,13 +53,32 @@ void SystemManager::loop() {
     }
   }
 
-  // === Sync lights with speaker ONLY in ACTIVE ===
+  static bool printedOnce = false;
+
+  if (!printedOnce && millis() > 7000) {  // wait until RTC check has run at least once
+    printStatus();
+    printedOnce = true;
+  }
+
+  // === 🔧 CHANGED: Sync lights with speaker only in ACTIVE
   if (currentState == SystemState::ACTIVE) {
-    if (SpeakerController::getState() == SpeakerState::PLAYING) {
-      LightController::start();
-    } else {
-      LightController::stop();
+    int currentTrack = SpeakerController::getLastTrack();
+    if (currentTrack != lastSyncedTrack && currentTrack > 0) {
+      lastSyncedTrack = currentTrack;
+      int fadeDurationMs = trackDurationsMs[currentTrack - 1] / 2;
+      LightController::start(currentTrack, fadeDurationMs);
     }
+
+    SpeakerState currentState = SpeakerController::getState();
+    if (prevSpeakerState == SpeakerState::PLAYING && currentState != SpeakerState::PLAYING) {
+      LightController::stop();
+      Serial.println("[Light] Automatically stopped after track ended.");
+    }
+    prevSpeakerState = currentState;
+  } else {
+    // 🔧 CHANGED: always stop in IDLE
+    LightController::stop();
+    lastSyncedTrack = -1;
   }
 }
 
@@ -71,7 +94,7 @@ void SystemManager::setState(SystemState newState) {
 
   if (newState == SystemState::ACTIVE) {
     SpeakerController::start();
-    LightController::start();
+    // 🔧 REMOVED: LightController::start() — now triggered by speaker loop
   } else {
     SpeakerController::stop();
     LightController::stop();
