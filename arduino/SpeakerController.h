@@ -14,7 +14,9 @@ namespace SpeakerController {
   void setVolume(int vol);
   void loop();
   void printStatus();
+
   SpeakerState getState();
+  int getLastTrack(); // ✅ NEW
 }
 
 #endif

@@ -12,7 +12,7 @@ void setup() {
 
   debugPrintln("[Setup] Initializing system...");
 
-  RtcScheduler::begin();     
+  RtcScheduler::begin(); // Do NOT bundle this into SystemManager::begin()
   SystemManager::begin();    
 
   int wdtTimeoutMS = Watchdog.enable(8000, false);  // 8 seconds timeout

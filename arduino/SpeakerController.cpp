@@ -10,6 +10,8 @@ namespace {
 
   SpeakerState state = SpeakerState::STOPPED;
   unsigned long lastCheck = 0;
+
+  int lastPlayedTrack = -1;  // ✅ NEW: stores the last played track number
 }
 
 void SpeakerController::begin() {
@@ -61,6 +63,8 @@ void SpeakerController::start() {
   }
 
   int track = random(1, total + 1);
+  lastPlayedTrack = track;  // ✅ Track for light sync
+  
   player.play(track);
   state = SpeakerState::PLAYING;
 
@@ -134,4 +138,8 @@ void SpeakerController::printStatus() {
     case SpeakerState::PLAYING: debugPrintln("PLAYING"); break;
     case SpeakerState::PAUSED:  debugPrintln("PAUSED"); break;
   }
+}
+
+int SpeakerController::getLastTrack() {
+  return lastPlayedTrack;  // ✅ NEW: allows sync logic to query track
 }

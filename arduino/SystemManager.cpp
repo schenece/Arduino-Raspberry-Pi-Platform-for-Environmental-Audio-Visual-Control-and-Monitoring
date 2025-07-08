@@ -18,9 +18,9 @@ void SystemManager::begin() {
 
   if (sdOk) SdFaultLogger::log("System booted", true);  // ✅ Log boot success
 
+  // RtcScheduler::begin();
   SpeakerController::begin();
   LightController::begin();
-  RtcScheduler::begin();
   setState(SystemState::IDLE);
 }
 
