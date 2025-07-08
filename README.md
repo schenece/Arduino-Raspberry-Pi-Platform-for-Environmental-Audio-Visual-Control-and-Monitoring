@@ -1,8 +1,6 @@
 
 # Arduino-Raspberry-Pi-Platform-for-Environmental-Audio-Visual-Control-and-Monitoring
 
-# 🐦 Arduino–Raspberry Pi Platform for Environmental Audio–Visual Control and Monitoring
-
 This project provides a synchronized hardware–software system that enables dynamic light and audio playback based on real-time cues and wildlife presence. It is designed for field deployment and bird behavior studies using a hybrid setup with an Arduino (Metro M0) and Raspberry Pi Zero.
 
 ---
