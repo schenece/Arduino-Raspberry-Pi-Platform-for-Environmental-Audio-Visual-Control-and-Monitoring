@@ -9,20 +9,21 @@ This project provides a synchronized hardware–software system that enables dyn
 
 ## 📁 Folder Structure
 
+```
 Arduino-Raspberry-Pi-Platform-for-Environmental-Audio-Visual-Control-and-Monitoring/
-├── arduino/              # Metro M0 Express source code
-│   ├── LightController.h     # Controls AC lamp via dimmer + light fade logic
-│   ├── SpeakerController.cpp # DFPlayer Mini interface + playback control
-│   ├── SystemManager.cpp     # State machine logic: IDLE / ACTIVE
-│   ├── Config.h              # Constants and flags
-│   └── *.py                  # Python tools to generate fade tables
-├── raspberrypi/          # Raspberry Pi Zero scripts
-│   ├── dev_sync.sh           # GPIO pulse sync script
-│   ├── rtc_wakeup.py         # RTC-driven system wake-up logic
-│   └── presence_detect.py    # (optional) Audio/video presence detection
-├── speakerfiles/         # MP3 files loaded to DFPlayer SD card
-├── README.md             # You’re reading it now
-
+├── arduino/               # Metro M0 Express source code
+│   ├── LightController.h      # Controls AC lamp via dimmer + light fade logic
+│   ├── SpeakerController.cpp  # DFPlayer Mini interface + playback control
+│   ├── SystemManager.cpp      # State machine logic: IDLE / ACTIVE
+│   ├── Config.h               # Constants and flags
+│   └── *.py                   # Python tools to generate fade tables
+├── raspberrypi/           # Raspberry Pi Zero scripts
+│   ├── dev_sync.sh            # GPIO pulse sync script
+│   ├── rtc_wakeup.py          # RTC-driven system wake-up logic
+│   └── presence_detect.py     # (optional) Audio/video presence detection
+├── speakerfiles/          # MP3 files loaded to DFPlayer SD card
+└── README.md              # You’re reading it now
+```
 ---
 
 ## 🧠 System Overview
