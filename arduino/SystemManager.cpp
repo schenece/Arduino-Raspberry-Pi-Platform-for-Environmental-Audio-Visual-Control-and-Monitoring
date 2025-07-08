@@ -6,6 +6,7 @@
 #include "debug_utils.h"
 #include "SdFaultLogger.h"  
 #include "FadeTable.h"
+#include "RelayController.h"
 
 #include <Adafruit_SleepyDog.h>
 
@@ -25,6 +26,7 @@ void SystemManager::begin() {
   // RtcScheduler::begin();
   SpeakerController::begin();
   LightController::begin();
+  RelayController::begin();
   setState(SystemState::IDLE);
 }
 
@@ -93,9 +95,11 @@ void SystemManager::setState(SystemState newState) {
   }
 
   if (newState == SystemState::ACTIVE) {
+    RelayController::turnOn();
     SpeakerController::start();
     // 🔧 REMOVED: LightController::start() — now triggered by speaker loop
   } else {
+    RelayController::turnOff();
     SpeakerController::stop();
     LightController::stop();
   }
