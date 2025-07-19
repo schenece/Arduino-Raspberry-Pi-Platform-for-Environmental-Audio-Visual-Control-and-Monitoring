@@ -3,6 +3,9 @@
 #include "Config.h"
 #include "debug_utils.h"
 #include <DFRobotDFPlayerMini.h>
+#include "FadeTable.h"
+
+extern const int NUM_TRACKS;
 
 namespace {
   DFRobotDFPlayerMini player;
@@ -45,6 +48,7 @@ void SpeakerController::begin() {
   Serial.println(DEFAULT_VOLUME);
 
   state = SpeakerState::STOPPED;
+  randomSeed(analogRead(A0));
 }
 
 void SpeakerController::start() {
@@ -62,9 +66,12 @@ void SpeakerController::start() {
     return;
   }
 
-  int track = random(1, total + 1);
-  lastPlayedTrack = track;  // ✅ Track for light sync
+  int track;
+  do {
+    track = random(1, 25);  // Valid index: 1 to 24
+  } while (track == 13);                // Skip missing track
   
+  lastPlayedTrack = track;  // ✅ Track for light sync
   player.play(track);
   state = SpeakerState::PLAYING;
 

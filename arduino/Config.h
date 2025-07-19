@@ -11,12 +11,12 @@
 // ====== DFPlayer Settings ======
 #define DFPLAYER_SERIAL_BAUD 9600
 #define DFPLAYER_BUSY_PIN 8
-#define DEFAULT_VOLUME 18
+#define DEFAULT_VOLUME 30
 
 // ====== Active Window Settings ======
 #define ACTIVE_START_HOUR     16
-#define ACTIVE_START_MINUTE  00
-#define ACTIVE_DURATION_HOUR  0
-#define ACTIVE_DURATION_MINUTE 10
+#define ACTIVE_START_MINUTE  07
+#define ACTIVE_DURATION_HOUR  1
+#define ACTIVE_DURATION_MINUTE 0
 
 #endif

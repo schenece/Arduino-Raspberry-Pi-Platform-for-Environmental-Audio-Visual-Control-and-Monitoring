@@ -8,11 +8,36 @@
 #define ZC_PIN 2
 #define PSM_PIN 3
 
+/*
+ * ========================================================================
+ *  LightController.h
+ *  ----------------------------------------------------------------------
+ *  Drives TRIAC-based lamp dimming synchronized to AC zero-cross events.
+ *
+ *  - Applies a phase delay (delayTimeUs) after each ZC to trigger the TRIAC
+ *  - Dynamically adjusts delay to create FADE IN / FADE OUT patterns
+ *  - Triggered by SystemManager when speaker playback begins
+ *
+ *  🔧 Manual sync mode:
+ *    - Uses fadeInStepUs and fadeOutStepUs = brightnessStepUs
+ *    - Updates every `cyclesPerStep` AC cycles
+ *    - Parameters set dynamically per track via LightController::start(...)
+ *
+ *  Important:
+ *    - delayForBrightestUs / delayForDarkestUs define fade bounds
+ *    - Assumes 60Hz power → 120 AC cycles per second
+ * ========================================================================
+ */
+
 namespace LightController {
 
 // === Safe firing delay range (empirically stable) ===
-const unsigned int delayForBrightestUs = 1800;
-const unsigned int delayForDarkestUs  = 7800;
+// const unsigned int delayForBrightestUs = 1800;
+// const unsigned int delayForDarkestUs  = 6500;
+
+// For lab film:
+const unsigned int delayForBrightestUs = 1500;
+const unsigned int delayForDarkestUs  = 7200;
 
 // === Runtime State ===
 volatile bool triggerPending = false;
@@ -46,40 +71,25 @@ void begin() {
   Serial.println("[Light] Hardware test light controller initialized.");
 }
 
-void start(int trackNum, int fadeTimeMs) {
+void start(int trackNum, int brightnessStepUs, int cyclesPerStep) {
   fadingActive = true;
   delayTimeUs = delayForDarkestUs;  // 🔧 Make sure we start from dark
   fadeOutStarted = false;
   cycleCounter = 0;
   trackNumGlobal = trackNum;
 
-  int totalDeltaUs = delayForDarkestUs - delayForBrightestUs;
+  fadeInStepUs = brightnessStepUs;
+  fadeOutStepUs = brightnessStepUs;
+  cyclesPerStepIn = cyclesPerStep;
+  cyclesPerStepOut = cyclesPerStep;
 
-  // === FADE IN
-  float fadeHalfSecIn = fadeTimeMs / 1000.0 / 2.0;
-  float fadeCyclesIn = fadeHalfSecIn * 120.0;
-  int totalStepsIn = totalDeltaUs / fadeInStepUs;
-  cyclesPerStepIn = max(1, round(fadeCyclesIn / totalStepsIn));
-
-  // === FADE OUT
-  float fadeHalfSecOut = fadeTimeMs / 1000.0 / 2.0;
-  float fadeCyclesOut = fadeHalfSecOut * 120.0;
-  int totalStepsOut = totalDeltaUs / fadeOutStepUs;
-  cyclesPerStepOut = max(1, round(fadeCyclesOut / totalStepsOut));
-
-  Serial.print("[Light] Starting FADE IN for Track ");
+  Serial.print("[Light] Fade INIT: Track ");
   Serial.print(trackNum);
-  Serial.print(" (fadeInStepUs = ");
-  Serial.print(fadeInStepUs);
-  Serial.print(", fadeOutStepUs = ");
-  Serial.print(fadeOutStepUs);
-  Serial.print(", fadeTimeMs = ");
-  Serial.print(fadeTimeMs);
-  Serial.print(", cyclesPerStepIn = ");
-  Serial.print(cyclesPerStepIn);
-  Serial.print(", cyclesPerStepOut = ");
-  Serial.print(cyclesPerStepOut);
-  Serial.println(")");
+  Serial.print(" using brightnessStepUs = ");
+  Serial.print(brightnessStepUs);
+  Serial.print(", cyclesPerStep = ");
+  Serial.print(cyclesPerStep);
+  Serial.println();
 
   zcCooldownCycles = 2;
   lightEnabled = true;

@@ -10,6 +10,29 @@
 
 #include <Adafruit_SleepyDog.h>
 
+/*
+ * ========================================================================
+ *  SystemManager.cpp
+ *  ----------------------------------------------------------------------
+ *  Orchestrates overall behavior based on system state (IDLE or ACTIVE).
+ *
+ *  - Starts/stops speaker and light fades based on RTC-defined windows
+ *  - Monitors speaker state for automatic replay of audio
+ *  - Coordinates per-track visual sync using fade table values
+ *
+ *  🔧 Track sync logic:
+ *    - On ACTIVE state entry or new track start:
+ *      → Look up fade parameters from fadeTable
+ *      → Call LightController::start(...) with track-specific values
+ *
+ *  Dependencies:
+ *    - RtcScheduler: determines active time windows
+ *    - SpeakerController: manages DFPlayer state
+ *    - LightController: handles fade sync
+ *    - FadeTable: stores manually tuned brightness & timing per track
+ * ========================================================================
+ */
+
 namespace {
   SystemState currentState = SystemState::IDLE;
   unsigned long manualOverrideUntil = 0;
@@ -65,16 +88,40 @@ void SystemManager::loop() {
   // === 🔧 CHANGED: Sync lights with speaker only in ACTIVE
   if (currentState == SystemState::ACTIVE) {
     int currentTrack = SpeakerController::getLastTrack();
-    if (currentTrack != lastSyncedTrack && currentTrack > 0) {
+    if (currentTrack != lastSyncedTrack && currentTrack > 0 && currentTrack <= NUM_TRACKS) {
       lastSyncedTrack = currentTrack;
-      int fadeDurationMs = trackDurationsMs[currentTrack - 1] / 2;
-      LightController::start(currentTrack, fadeDurationMs);
+
+      const FadeParams& params = fadeTable[currentTrack - 1];
+
+      // Skip missing track (e.g. track 13 is manually set to {0,0})
+      if (params.brightnessStepUs == 0 || params.cyclesPerStep == 0) {
+        Serial.println("[System] Track has no fade params. Skipping light sync.");
+      } else {
+        LightController::start(currentTrack, params.brightnessStepUs, params.cyclesPerStep);
+        Serial.print("[System] Syncing Track ");
+        Serial.print(currentTrack);
+        Serial.print(" → Fade Pattern ");
+        Serial.print(currentTrack); // ✅ Human-friendly: pattern = track number
+        Serial.println();
+
+        Serial.print("[System] Light sync triggered with fade params → ");
+        Serial.print("brightnessStepUs = ");
+        Serial.print(params.brightnessStepUs);
+        Serial.print(", cyclesPerStep = ");
+        Serial.println(params.cyclesPerStep);
+      }
     }
 
     SpeakerState currentState = SpeakerController::getState();
     if (prevSpeakerState == SpeakerState::PLAYING && currentState != SpeakerState::PLAYING) {
+      RelayController::turnOff();
       LightController::stop();
-      Serial.println("[Light] Automatically stopped after track ended.");
+      Serial.println("[System] Track ended → amp off, lights off.");
+
+      delay(3000);  // Optional: quiet time between tracks
+      RelayController::turnOn();
+      delay(100);   // Allow relay/amp to settle
+      SpeakerController::start();
     }
     prevSpeakerState = currentState;
   } else {

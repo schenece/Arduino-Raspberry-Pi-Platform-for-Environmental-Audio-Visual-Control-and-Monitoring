@@ -54,4 +54,5 @@ RtcScheduler::ActiveWindow RtcScheduler::getActiveWindow(
 
 bool RtcScheduler::isActiveWindow(const ActiveWindow& window, DateTime nowOverride) {
   return (nowOverride >= window.start && nowOverride < window.end);
+  // return true; // For test only 
 }
